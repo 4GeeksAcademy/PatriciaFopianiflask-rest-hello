@@ -18,7 +18,8 @@ db_url = os.getenv("DATABASE_URL")
 if db_url is not None:
     app.config['SQLALCHEMY_DATABASE_URI'] = db_url.replace("postgres://", "postgresql://")
 else:
-    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:////tmp/test.db"
+    app.config['SQLALCHEMY_DATABASE_URI'] = "sqlite:///local.db"   # evita que se borre en /tmp
+
 app.config['SQLALCHEMY_TRACK_MODIFICATIONS'] = False
 
 MIGRATE = Migrate(app, db)
@@ -38,9 +39,16 @@ def sitemap():
 
 @app.route('/user', methods=['GET'])
 def handle_hello():
+    person = User.query.get(1)
+
+    if person is None:
+        return jsonify({"error": "User with id=1 not found"}), 404
+
+    print(person.serialize())
 
     response_body = {
-        "msg": "Hello, this is your GET /user response "
+        "msg": "Hello, this is your GET /user response ",
+        "user": person.serialize()
     }
 
     return jsonify(response_body), 200
